@@ -52,6 +52,48 @@ set_statistics:
           step: 0.1
           mode: box
           unit_of_measurement: min
+    today_count:
+      selector:
+        number:
+          min: 0
+          max: 100000
+          mode: box
+    today_minutes:
+      selector:
+        number:
+          min: 0
+          max: 1000000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
+    week_count:
+      selector:
+        number:
+          min: 0
+          max: 100000
+          mode: box
+    week_minutes:
+      selector:
+        number:
+          min: 0
+          max: 1000000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
+    month_count:
+      selector:
+        number:
+          min: 0
+          max: 100000
+          mode: box
+    month_minutes:
+      selector:
+        number:
+          min: 0
+          max: 1000000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
 
 reset_statistics:
   fields:

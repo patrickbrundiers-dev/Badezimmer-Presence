@@ -20,6 +20,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
     async_track_state_change_event,
+    async_track_time_change,
 )
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
@@ -57,6 +58,7 @@ from .engine import (
     EngineConfig,
     PresenceEngine,
     ReleaseReason,
+    default_period_keys,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -122,6 +124,7 @@ class PresenceManager:
             config=build_engine_config(entry),
             now=dt_util.utcnow(),
             on_event=self._handle_engine_event,
+            period_keys=lambda now: default_period_keys(dt_util.as_local(now)),
         )
         self._store: Store[dict[str, Any]] = Store(
             hass, STORAGE_VERSION, f"{DOMAIN}.{entry.entry_id}"
@@ -159,6 +162,10 @@ class PresenceManager:
         if self._humidity_entity:
             tracked.append(self._humidity_entity)
         self._unsubs.append(async_track_state_change_event(self.hass, tracked, self._state_changed))
+        # roll day/week/month statistics right after local midnight
+        self._unsubs.append(
+            async_track_time_change(self.hass, self._midnight, hour=0, minute=0, second=1)
+        )
         self._after_change()
 
     async def async_stop(self) -> None:
@@ -180,6 +187,11 @@ class PresenceManager:
             self.engine.update_humidity(_float_value(new_state), now)
         elif name := self._entity_to_input.get(entity_id):
             self.engine.update_binary(name, _binary_value(new_state), now)
+        self._after_change()
+
+    @callback
+    def _midnight(self, now: datetime) -> None:
+        self.engine.tick(dt_util.utcnow())
         self._after_change()
 
     @callback
@@ -230,6 +242,12 @@ class PresenceManager:
         """Release the bathroom manually."""
         self.engine.now = dt_util.utcnow()
         self.engine.release(ReleaseReason.MANUAL)
+        self._after_change()
+
+    @callback
+    def async_occupy(self) -> None:
+        """Set the bathroom occupied manually."""
+        self.engine.occupy_manually(dt_util.utcnow())
         self._after_change()
 
     @callback

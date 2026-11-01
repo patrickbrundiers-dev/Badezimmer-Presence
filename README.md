@@ -75,6 +75,11 @@ hinter der Glaswand verliert.
 | `sensor.<bad>_{nutzung,dusche,wc}_letzte_dauer` | Dauer der letzten Nutzung |
 | `sensor.<bad>_{nutzung,dusche,wc}_maximale_dauer` | Längste Nutzung |
 | `sensor.<bad>_{nutzung,dusche,wc}_durchschnittsdauer` | Durchschnitt über alle Nutzungen |
+| `sensor.<bad>_{nutzung,dusche,wc}_anzahl_{heute,woche,monat}` | Anzahl im laufenden Tag / Woche / Monat |
+| `sensor.<bad>_{nutzung,dusche,wc}_minuten_{heute,woche,monat}` | Minuten im laufenden Zeitraum |
+| `sensor.<bad>_{nutzung,dusche,wc}_durchschnitt_{heute,woche,monat}` | Durchschnittsdauer im laufenden Zeitraum |
+| `sensor.<bad>_{nutzung,dusche,wc}_start` | Beginn der laufenden bzw. letzten Nutzung (ersetzt die `input_datetime`-Helfer) |
+| `switch.<bad>_belegt_manuell` | Bad von Hand belegen oder freigeben (ersetzt das `input_boolean`) |
 | `button.<bad>_freigeben` | Bad sofort freigeben |
 
 `<bad>` ist der beim Einrichten vergebene Name. Gibt es schon eine Entität mit
@@ -82,8 +87,8 @@ derselben ID (z. B. den alten Template-Sensor `binary_sensor.badezimmer_belegt`)
 hängt Home Assistant `_2` an. Wähle dann einen anderen Namen oder benenne um,
 sobald die alten Helfer entfernt sind.
 
-Tages-, Wochen- und Monatswerte bekommst du wie bisher mit einem
-**Verbrauchszähler-Helfer** (utility_meter) auf die Anzahl- und Minuten-Sensoren.
+Tages-, Wochen- und Monatswerte liefert die Integration selbst, Verbrauchszähler-Helfer
+sind nicht mehr nötig. Die Woche beginnt am Montag.
 
 ## Ereignisse für Benachrichtigungen
 
@@ -133,6 +138,9 @@ mode: single
      last_minutes: "{{ states('input_number.bad_letzte_dauer') | float }}"
      max_minutes: "{{ states('input_number.bad_max_dauer') | float }}"
    ```
+
+   Die laufenden Zeiträume übernimmst du mit `today_count`, `today_minutes`, `week_count`,
+   `week_minutes`, `month_count` und `month_minutes` im selben Aufruf.
 
    Dasselbe mit `kind: shower` (`bad_duschen_gesamt_speicher`, `bad_duschminuten_gesamt_speicher`,
    `bad_dusche_letzte_dauer`, `bad_dusche_max_dauer`) und `kind: toilet`

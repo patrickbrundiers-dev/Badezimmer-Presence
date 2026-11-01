@@ -330,3 +330,58 @@ def test_events() -> None:
     sim.advance(minutes=4)
     assert sim.event_types() == ["occupied", "released"]
     assert sim.events[1][1]["reason"] == "no_presence"
+
+
+def test_no_spinning_deadline_while_release_is_blocked() -> None:
+    sim = Sim()
+    sim.set(TOILET_LID, True)  # presence has been off for an hour already
+    sim.advance(minutes=5)
+    deadline = sim.engine.next_deadline()
+    assert deadline is None or deadline > sim.now
+
+
+def test_period_statistics_roll_over_at_day_week_month() -> None:
+    sim = Sim()
+    sim.set(TOILET_LID, True)
+    sim.advance(minutes=2)
+    sim.set(TOILET_LID, False)
+    stats = sim.engine.stats_toilet
+    assert stats.period_count("today") == 1
+    assert stats.period_minutes("today") == 2.0
+    assert stats.period_average("today") == 2.0
+    # 2026-11-01 is a Sunday: the next day starts a new day and a new week
+    sim.advance(minutes=16 * 60 + 5)
+    assert stats.period_count("today") == 0
+    assert stats.period_count("week") == 0
+    assert stats.period_count("month") == 1
+    assert stats.period_average("today") is None
+    assert stats.count == 1
+
+
+def test_imported_period_values_survive_first_roll() -> None:
+    engine = PresenceEngine(EngineConfig(), T0)
+    engine.stats_usage.periods["today"].update(count=20, minutes=128.1)
+    engine.tick(T0 + timedelta(seconds=1))
+    assert engine.stats_usage.period_count("today") == 20
+
+
+def test_manual_occupy_and_auto_release() -> None:
+    sim = Sim()
+    sim.engine.occupy_manually(sim.now)
+    assert sim.occupied
+    assert sim.engine.occupy_reason.value == "manual"
+    sim.advance(minutes=2)  # nobody there: normal release delay from switch-on
+    assert sim.occupied
+    sim.advance(minutes=1, seconds=5)
+    assert not sim.occupied
+
+
+def test_period_roundtrip() -> None:
+    sim = Sim()
+    sim.set(TOILET_LID, True)
+    sim.advance(minutes=1)
+    sim.set(TOILET_LID, False)
+    other = PresenceEngine(EngineConfig(), sim.now)
+    other.restore(sim.engine.as_dict())
+    other.tick(sim.now)
+    assert other.stats_toilet.period_count("week") == 1

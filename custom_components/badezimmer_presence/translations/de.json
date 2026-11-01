@@ -92,6 +92,11 @@
         "name": "Freigeben"
       }
     },
+    "switch": {
+      "occupied_switch": {
+        "name": "Belegt (manuell)"
+      }
+    },
     "sensor": {
       "status": {
         "name": "Status",
@@ -123,6 +128,36 @@
       "usage_average_duration": {
         "name": "Nutzung Durchschnittsdauer"
       },
+      "usage_count_today": {
+        "name": "Nutzung Anzahl heute"
+      },
+      "usage_minutes_today": {
+        "name": "Nutzung Minuten heute"
+      },
+      "usage_average_today": {
+        "name": "Nutzung Durchschnitt heute"
+      },
+      "usage_count_week": {
+        "name": "Nutzung Anzahl Woche"
+      },
+      "usage_minutes_week": {
+        "name": "Nutzung Minuten Woche"
+      },
+      "usage_average_week": {
+        "name": "Nutzung Durchschnitt Woche"
+      },
+      "usage_count_month": {
+        "name": "Nutzung Anzahl Monat"
+      },
+      "usage_minutes_month": {
+        "name": "Nutzung Minuten Monat"
+      },
+      "usage_average_month": {
+        "name": "Nutzung Durchschnitt Monat"
+      },
+      "usage_start": {
+        "name": "Nutzung Start"
+      },
       "shower_count": {
         "name": "Dusche Anzahl"
       },
@@ -138,6 +173,36 @@
       "shower_average_duration": {
         "name": "Dusche Durchschnittsdauer"
       },
+      "shower_count_today": {
+        "name": "Dusche Anzahl heute"
+      },
+      "shower_minutes_today": {
+        "name": "Dusche Minuten heute"
+      },
+      "shower_average_today": {
+        "name": "Dusche Durchschnitt heute"
+      },
+      "shower_count_week": {
+        "name": "Dusche Anzahl Woche"
+      },
+      "shower_minutes_week": {
+        "name": "Dusche Minuten Woche"
+      },
+      "shower_average_week": {
+        "name": "Dusche Durchschnitt Woche"
+      },
+      "shower_count_month": {
+        "name": "Dusche Anzahl Monat"
+      },
+      "shower_minutes_month": {
+        "name": "Dusche Minuten Monat"
+      },
+      "shower_average_month": {
+        "name": "Dusche Durchschnitt Monat"
+      },
+      "shower_start": {
+        "name": "Dusche Start"
+      },
       "toilet_count": {
         "name": "WC Anzahl"
       },
@@ -152,6 +217,36 @@
       },
       "toilet_average_duration": {
         "name": "WC Durchschnittsdauer"
+      },
+      "toilet_count_today": {
+        "name": "WC Anzahl heute"
+      },
+      "toilet_minutes_today": {
+        "name": "WC Minuten heute"
+      },
+      "toilet_average_today": {
+        "name": "WC Durchschnitt heute"
+      },
+      "toilet_count_week": {
+        "name": "WC Anzahl Woche"
+      },
+      "toilet_minutes_week": {
+        "name": "WC Minuten Woche"
+      },
+      "toilet_average_week": {
+        "name": "WC Durchschnitt Woche"
+      },
+      "toilet_count_month": {
+        "name": "WC Anzahl Monat"
+      },
+      "toilet_minutes_month": {
+        "name": "WC Minuten Monat"
+      },
+      "toilet_average_month": {
+        "name": "WC Durchschnitt Monat"
+      },
+      "toilet_start": {
+        "name": "WC Start"
       }
     }
   },
@@ -202,6 +297,30 @@
         "max_minutes": {
           "name": "Maximale Dauer",
           "description": "Längste Nutzung in Minuten."
+        },
+        "today_count": {
+          "name": "Anzahl heute",
+          "description": "Anzahl im aktuellen Zeitraum (heute)."
+        },
+        "today_minutes": {
+          "name": "Minuten heute",
+          "description": "Minuten im aktuellen Zeitraum (heute)."
+        },
+        "week_count": {
+          "name": "Anzahl Woche",
+          "description": "Anzahl im aktuellen Zeitraum (Woche)."
+        },
+        "week_minutes": {
+          "name": "Minuten Woche",
+          "description": "Minuten im aktuellen Zeitraum (Woche)."
+        },
+        "month_count": {
+          "name": "Anzahl Monat",
+          "description": "Anzahl im aktuellen Zeitraum (Monat)."
+        },
+        "month_minutes": {
+          "name": "Minuten Monat",
+          "description": "Minuten im aktuellen Zeitraum (Monat)."
         }
       }
     },

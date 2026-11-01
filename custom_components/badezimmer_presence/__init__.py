@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
 from .const import (
@@ -17,10 +18,15 @@ from .const import (
     SERVICE_SET_STATISTICS,
     STORAGE_VERSION,
 )
-from .engine import UsageStats
+from .engine import PERIODS, UsageStats
 from .manager import PresenceManager
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 type BadezimmerConfigEntry = ConfigEntry[PresenceManager]
 
@@ -40,6 +46,13 @@ SET_STATISTICS_SCHEMA = vol.Schema(
         vol.Optional("total_minutes"): vol.All(vol.Coerce(float), vol.Range(min=0)),
         vol.Optional("last_minutes"): vol.All(vol.Coerce(float), vol.Range(min=0)),
         vol.Optional("max_minutes"): vol.All(vol.Coerce(float), vol.Range(min=0)),
+        **{
+            vol.Optional(f"{period}_{field}"): vol.All(
+                vol.Coerce(int if field == "count" else float), vol.Range(min=0)
+            )
+            for period in PERIODS
+            for field in ("count", "minutes")
+        },
     }
 )
 RESET_STATISTICS_SCHEMA = vol.Schema({**_TARGET, vol.Optional(ATTR_KIND): vol.In(KINDS)})
@@ -69,6 +82,13 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         for key in ("count", "total_minutes", "last_minutes", "max_minutes"):
             if key in call.data:
                 setattr(stats, key, call.data[key])
+        keys = manager.engine.period_keys(dt_util.utcnow())
+        for period in PERIODS:
+            for field in ("count", "minutes"):
+                if (value := call.data.get(f"{period}_{field}")) is not None:
+                    stats.periods.setdefault(period, {"key": keys[period]})
+                    stats.periods[period]["key"] = keys[period]
+                    stats.periods[period][field] = value
         manager.async_changed()
 
     async def reset_statistics(call: ServiceCall) -> None:
