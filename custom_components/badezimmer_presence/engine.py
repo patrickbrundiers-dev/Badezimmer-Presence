@@ -68,6 +68,7 @@ class ReleaseReason(StrEnum):
 class OccupyReason(StrEnum):
     """Why the bathroom was set to occupied."""
 
+    MANUAL = "manual"
     ENTRY_AND_PRESENCE = "entry_and_presence"
     PRESENCE = "presence"
     SHOWER = "shower"
@@ -117,10 +118,44 @@ class UsageStats:
     max_minutes: float | None = None
     last_start: datetime | None = None
     last_end: datetime | None = None
+    # today / week / month: {"key": period id, "count": int, "minutes": float}
+    periods: dict[str, dict[str, Any]] = field(
+        default_factory=lambda: {p: _empty_period(None) for p in PERIODS}
+    )
+
+    def roll(self, keys: dict[str, str]) -> bool:
+        """Reset periods whose id changed (new day/week/month). Returns True if any."""
+        changed = False
+        for period, key in keys.items():
+            current = self.periods.get(period)
+            if current is None or current.get("key") != key:
+                # first run after an update keeps imported values for this period
+                if current is not None and current.get("key") is None:
+                    current["key"] = key
+                else:
+                    self.periods[period] = _empty_period(key)
+                changed = True
+        return changed
+
+    def period_count(self, period: str) -> int:
+        """Count in the given period."""
+        return int(self.periods.get(period, {}).get("count") or 0)
+
+    def period_minutes(self, period: str) -> float:
+        """Minutes in the given period."""
+        return float(self.periods.get(period, {}).get("minutes") or 0.0)
+
+    def period_average(self, period: str) -> float | None:
+        """Average duration in the given period."""
+        count = self.period_count(period)
+        return round(self.period_minutes(period) / count, 1) if count else None
 
     def record(self, start: datetime, end: datetime) -> None:
         """Record one finished usage."""
         minutes = round(max((end - start).total_seconds(), 0) / 60, 1)
+        for period in self.periods.values():
+            period["count"] = int(period.get("count") or 0) + 1
+            period["minutes"] = round(float(period.get("minutes") or 0.0) + minutes, 1)
         self.count += 1
         self.total_minutes = round(self.total_minutes + minutes, 1)
         self.last_minutes = minutes
@@ -137,6 +172,7 @@ class UsageStats:
             "max_minutes": self.max_minutes,
             "last_start": self.last_start.isoformat() if self.last_start else None,
             "last_end": self.last_end.isoformat() if self.last_end else None,
+            "periods": {k: dict(v) for k, v in self.periods.items()},
         }
 
     @classmethod
@@ -151,7 +187,28 @@ class UsageStats:
             max_minutes=data.get("max_minutes"),
             last_start=_parse_dt(data.get("last_start")),
             last_end=_parse_dt(data.get("last_end")),
+            periods={
+                p: {**_empty_period(None), **((data.get("periods") or {}).get(p) or {})}
+                for p in PERIODS
+            },
         )
+
+
+PERIODS = ("today", "week", "month")
+
+
+def _empty_period(key: str | None) -> dict[str, Any]:
+    return {"key": key, "count": 0, "minutes": 0.0}
+
+
+def default_period_keys(now: datetime) -> dict[str, str]:
+    """Period ids for ``now`` (the manager passes local time)."""
+    iso = now.isocalendar()
+    return {
+        "today": now.date().isoformat(),
+        "week": f"{iso.year}-W{iso.week:02d}",
+        "month": f"{now.year}-{now.month:02d}",
+    }
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -178,6 +235,7 @@ class PresenceEngine:
     config: EngineConfig
     now: datetime
     on_event: Callable[[str, dict[str, Any]], None] | None = None
+    period_keys: Callable[[datetime], dict[str, str]] = default_period_keys
 
     occupied: bool = False
     occupied_since: datetime | None = None
@@ -332,7 +390,7 @@ class PresenceEngine:
 
     def _on_toilet_lid_closed(self) -> None:
         if self._toilet_since is not None:
-            self.stats_toilet.record(self._toilet_since, self.now)
+            self._record(self.stats_toilet, self._toilet_since)
         self._toilet_since = None
         self.toilet_lid_alert_active = False
 
@@ -374,7 +432,7 @@ class PresenceEngine:
         if not self.occupied:
             return
         start = self.occupied_since or self.now
-        self.stats_usage.record(start, self.now)
+        self._record(self.stats_usage, start)
         self.occupied = False
         self.occupied_since = None
         self.release_reason = reason
@@ -401,7 +459,7 @@ class PresenceEngine:
             self._try_occupy(OccupyReason.SHOWER)
         else:
             start = self.shower_since or self.now
-            self.stats_shower.record(start, self.now)
+            self._record(self.stats_shower, start)
             self.shower_since = None
             self._rate_above_since = None
             self._rate_below_since = None
@@ -412,8 +470,36 @@ class PresenceEngine:
 
     # ------------------------------------------------------------- evaluation
 
+    def _record(self, stats: UsageStats, start: datetime) -> None:
+        self._roll_periods()
+        stats.record(start, self.now)
+
+    def _roll_periods(self) -> None:
+        keys = self.period_keys(self.now)
+        for stats in (self.stats_usage, self.stats_shower, self.stats_toilet):
+            stats.roll(keys)
+
+    @property
+    def toilet_since(self) -> datetime | None:
+        """Start of the running toilet usage."""
+        return self._toilet_since if self.toilet_lid_open else None
+
+    def occupy_manually(self, now: datetime) -> None:
+        """Set occupied by hand (switch)."""
+        self.now = now
+        if self.occupied:
+            return
+        self.occupied = True
+        self.occupied_since = now
+        self.occupy_reason = OccupyReason.MANUAL
+        self.release_reason = None
+        self.entry_window_until = None
+        self._emit(EVENT_OCCUPIED, {"reason": OccupyReason.MANUAL.value})
+        self._evaluate()
+
     def _evaluate(self) -> None:
         now = self.now
+        self._roll_periods()
 
         # Entry window expired
         if self.entry_window_until is not None and now >= self.entry_window_until:
@@ -464,6 +550,11 @@ class PresenceEngine:
             not self.usage_blocks_release
             and not self.entry_window_active
             and self._off_for(PRESENCE, self.config.release_delay)
+            # e.g. switched on by hand while nobody is there: give it the delay
+            and (
+                self.occupied_since is None
+                or now - self.occupied_since >= self.config.release_delay
+            )
         ):
             self.release(ReleaseReason.NO_PRESENCE)
             return
@@ -550,6 +641,8 @@ class PresenceEngine:
             presence = self._inputs[PRESENCE]
             if presence.value is False and presence.since is not None:
                 candidates.append(presence.since + cfg.release_delay)
+                if self.occupied_since is not None:
+                    candidates.append(self.occupied_since + cfg.release_delay)
                 candidates.append(presence.since + cfg.max_occupancy_absence)
             if self.occupied_since is not None:
                 candidates.append(self.occupied_since + cfg.max_occupancy)
@@ -564,9 +657,9 @@ class PresenceEngine:
                 if self.shower_since is not None:
                     candidates.append(self.shower_since + cfg.shower_max_duration)
         future = [c for c in candidates if c > self.now]
-        # occupancy may be due right now (e.g. already expired) -> tick asap
-        if any(c <= self.now for c in candidates):
-            return self.now
+        # Deadlines in the past were already handled by the evaluation that ran
+        # at ``self.now`` (e.g. presence off for long while the lid is open), so
+        # only future deadlines matter. Returning ``now`` here would spin.
         return min(future) if future else None
 
     # ----------------------------------------------------------------- status

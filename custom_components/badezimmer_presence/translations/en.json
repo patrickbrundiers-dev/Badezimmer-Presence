@@ -92,6 +92,11 @@
         "name": "Release"
       }
     },
+    "switch": {
+      "occupied_switch": {
+        "name": "Occupied (manual)"
+      }
+    },
     "sensor": {
       "status": {
         "name": "Status",
@@ -123,6 +128,36 @@
       "usage_average_duration": {
         "name": "Usage average duration"
       },
+      "usage_count_today": {
+        "name": "Usage count today"
+      },
+      "usage_minutes_today": {
+        "name": "Usage minutes today"
+      },
+      "usage_average_today": {
+        "name": "Usage average today"
+      },
+      "usage_count_week": {
+        "name": "Usage count this week"
+      },
+      "usage_minutes_week": {
+        "name": "Usage minutes this week"
+      },
+      "usage_average_week": {
+        "name": "Usage average this week"
+      },
+      "usage_count_month": {
+        "name": "Usage count this month"
+      },
+      "usage_minutes_month": {
+        "name": "Usage minutes this month"
+      },
+      "usage_average_month": {
+        "name": "Usage average this month"
+      },
+      "usage_start": {
+        "name": "Usage start"
+      },
       "shower_count": {
         "name": "Shower count"
       },
@@ -138,6 +173,36 @@
       "shower_average_duration": {
         "name": "Shower average duration"
       },
+      "shower_count_today": {
+        "name": "Shower count today"
+      },
+      "shower_minutes_today": {
+        "name": "Shower minutes today"
+      },
+      "shower_average_today": {
+        "name": "Shower average today"
+      },
+      "shower_count_week": {
+        "name": "Shower count this week"
+      },
+      "shower_minutes_week": {
+        "name": "Shower minutes this week"
+      },
+      "shower_average_week": {
+        "name": "Shower average this week"
+      },
+      "shower_count_month": {
+        "name": "Shower count this month"
+      },
+      "shower_minutes_month": {
+        "name": "Shower minutes this month"
+      },
+      "shower_average_month": {
+        "name": "Shower average this month"
+      },
+      "shower_start": {
+        "name": "Shower start"
+      },
       "toilet_count": {
         "name": "Toilet count"
       },
@@ -152,6 +217,36 @@
       },
       "toilet_average_duration": {
         "name": "Toilet average duration"
+      },
+      "toilet_count_today": {
+        "name": "Toilet count today"
+      },
+      "toilet_minutes_today": {
+        "name": "Toilet minutes today"
+      },
+      "toilet_average_today": {
+        "name": "Toilet average today"
+      },
+      "toilet_count_week": {
+        "name": "Toilet count this week"
+      },
+      "toilet_minutes_week": {
+        "name": "Toilet minutes this week"
+      },
+      "toilet_average_week": {
+        "name": "Toilet average this week"
+      },
+      "toilet_count_month": {
+        "name": "Toilet count this month"
+      },
+      "toilet_minutes_month": {
+        "name": "Toilet minutes this month"
+      },
+      "toilet_average_month": {
+        "name": "Toilet average this month"
+      },
+      "toilet_start": {
+        "name": "Toilet start"
       }
     }
   },
@@ -202,6 +297,30 @@
         "max_minutes": {
           "name": "Maximum duration",
           "description": "Longest usage in minutes."
+        },
+        "today_count": {
+          "name": "Count today",
+          "description": "Count in the current period (today)."
+        },
+        "today_minutes": {
+          "name": "Minutes today",
+          "description": "Minutes in the current period (today)."
+        },
+        "week_count": {
+          "name": "Count this week",
+          "description": "Count in the current period (this week)."
+        },
+        "week_minutes": {
+          "name": "Minutes this week",
+          "description": "Minutes in the current period (this week)."
+        },
+        "month_count": {
+          "name": "Count this month",
+          "description": "Count in the current period (this month)."
+        },
+        "month_minutes": {
+          "name": "Minutes this month",
+          "description": "Minutes in the current period (this month)."
         }
       }
     },

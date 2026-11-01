@@ -180,6 +180,27 @@ async def test_release_button_and_services(hass: HomeAssistant) -> None:
     ) == pytest.approx(11.0, abs=0.1)
 
     await hass.services.async_call(
+        DOMAIN,
+        "set_statistics",
+        {"device_id": device.id, "kind": "toilet", "today_count": 5, "today_minutes": 87.8},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(_id(hass, entry, "sensor", "toilet_count_today")).state == "5"
+    assert float(hass.states.get(_id(hass, entry, "sensor", "toilet_average_today")).state) == (
+        pytest.approx(17.6)
+    )
+
+    switch = _id(hass, entry, "switch", "occupied_switch")
+    await hass.services.async_call("switch", "turn_on", {"entity_id": switch}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(occupied).state == "on"
+    assert hass.states.get(switch).state == "on"
+    await hass.services.async_call("switch", "turn_off", {"entity_id": switch}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(occupied).state == "off"
+
+    await hass.services.async_call(
         DOMAIN, "reset_statistics", {"device_id": device.id}, blocking=True
     )
     await hass.async_block_till_done()

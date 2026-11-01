@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import BadezimmerConfigEntry
-from .engine import PresenceEngine, Status, UsageStats
+from .engine import PERIODS, PresenceEngine, Status, UsageStats
 from .entity import BadezimmerEntity
 
 
@@ -36,7 +36,53 @@ def _stats_descriptions(
     def stats(engine: PresenceEngine) -> UsageStats:
         return getattr(engine, f"stats_{kind}")
 
+    def start(engine: PresenceEngine):
+        running = {
+            "usage": engine.occupied_since,
+            "shower": engine.shower_since,
+            "toilet": engine.toilet_since,
+        }[kind]
+        return running or stats(engine).last_start
+
+    periods: list[BadezimmerSensorDescription] = []
+    for period in PERIODS:
+        periods.extend(
+            (
+                BadezimmerSensorDescription(
+                    key=f"{kind}_count_{period}",
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                    value_fn=lambda e, p=period: stats(e).period_count(p),
+                    available_fn=available_fn,
+                ),
+                BadezimmerSensorDescription(
+                    key=f"{kind}_minutes_{period}",
+                    device_class=SensorDeviceClass.DURATION,
+                    native_unit_of_measurement=UnitOfTime.MINUTES,
+                    state_class=SensorStateClass.TOTAL_INCREASING,
+                    suggested_display_precision=1,
+                    value_fn=lambda e, p=period: stats(e).period_minutes(p),
+                    available_fn=available_fn,
+                ),
+                BadezimmerSensorDescription(
+                    key=f"{kind}_average_{period}",
+                    device_class=SensorDeviceClass.DURATION,
+                    native_unit_of_measurement=UnitOfTime.MINUTES,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=1,
+                    value_fn=lambda e, p=period: stats(e).period_average(p),
+                    available_fn=available_fn,
+                ),
+            )
+        )
+
     return (
+        *periods,
+        BadezimmerSensorDescription(
+            key=f"{kind}_start",
+            device_class=SensorDeviceClass.TIMESTAMP,
+            value_fn=start,
+            available_fn=available_fn,
+        ),
         BadezimmerSensorDescription(
             key=f"{kind}_count",
             state_class=SensorStateClass.TOTAL_INCREASING,
@@ -69,7 +115,6 @@ def _stats_descriptions(
             device_class=SensorDeviceClass.DURATION,
             native_unit_of_measurement=UnitOfTime.MINUTES,
             suggested_display_precision=1,
-            entity_category=EntityCategory.DIAGNOSTIC,
             value_fn=lambda e: stats(e).max_minutes,
             available_fn=available_fn,
         ),
@@ -77,8 +122,8 @@ def _stats_descriptions(
             key=f"{kind}_average_duration",
             device_class=SensorDeviceClass.DURATION,
             native_unit_of_measurement=UnitOfTime.MINUTES,
+            state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=1,
-            entity_category=EntityCategory.DIAGNOSTIC,
             value_fn=lambda e: (
                 round(stats(e).total_minutes / stats(e).count, 1) if stats(e).count else None
             ),
