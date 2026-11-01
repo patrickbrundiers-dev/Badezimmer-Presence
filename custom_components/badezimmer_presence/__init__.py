@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -60,12 +60,14 @@ RELEASE_SCHEMA = vol.Schema(_TARGET)
 
 
 def _manager_from_call(hass: HomeAssistant, call: ServiceCall) -> PresenceManager:
-    device = dr.async_get(hass).async_get(call.data[ATTR_DEVICE_ID])
-    if device is not None:
-        for entry_id in device.config_entries:
-            entry = hass.config_entries.async_get_entry(entry_id)
-            if entry and entry.domain == DOMAIN and hasattr(entry, "runtime_data"):
-                return entry.runtime_data
+    registry = dr.async_get(hass)
+    device_id = call.data[ATTR_DEVICE_ID]
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.state is not ConfigEntryState.LOADED:
+            continue
+        devices = dr.async_entries_for_config_entry(registry, entry.entry_id)
+        if any(device.id == device_id for device in devices):
+            return entry.runtime_data
     raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unknown_device")
 
 
