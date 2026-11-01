@@ -1,0 +1,228 @@
+{
+  "title": "Badezimmer Presence",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up bathroom",
+        "description": "Pick the sensors of your bathroom. Only the presence sensor is required, every other sensor makes detection more accurate.",
+        "data": {
+          "name": "Name",
+          "presence_sensor": "Presence sensor (room)",
+          "entry_sensor": "Entry sensor (at the door)",
+          "door_sensor": "Door contact",
+          "toilet_lid_sensor": "Toilet lid contact",
+          "humidity_sensor": "Humidity sensor (shower)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR sensor detecting people in the room.",
+          "entry_sensor": "Motion sensor at the entrance. Starts the entry window. Without it the door contact takes over.",
+          "door_sensor": "Used for quick release when leaving.",
+          "toilet_lid_sensor": "An open lid means definite use and keeps the room occupied.",
+          "humidity_sensor": "The shower is detected from rising humidity."
+        }
+      },
+      "reconfigure": {
+        "title": "Change sensors",
+        "data": {
+          "presence_sensor": "Presence sensor (room)",
+          "entry_sensor": "Entry sensor (at the door)",
+          "door_sensor": "Door contact",
+          "toilet_lid_sensor": "Toilet lid contact",
+          "humidity_sensor": "Humidity sensor (shower)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR sensor detecting people in the room.",
+          "entry_sensor": "Motion sensor at the entrance. Starts the entry window. Without it the door contact takes over.",
+          "door_sensor": "Used for quick release when leaving.",
+          "toilet_lid_sensor": "An open lid means definite use and keeps the room occupied.",
+          "humidity_sensor": "The shower is detected from rising humidity."
+        }
+      }
+    },
+    "error": {
+      "duplicate_sensor": "Each sensor can only be selected once."
+    },
+    "abort": {
+      "already_configured": "This presence sensor is already used by a bathroom.",
+      "reconfigure_successful": "The sensors were updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Timings and thresholds",
+        "data": {
+          "entry_window": "Entry window",
+          "release_delay": "Release after no presence for",
+          "exit_wait_for_absence": "Quick release: wait for absence",
+          "exit_reentry_guard": "Quick release: re-entry guard",
+          "max_occupancy": "Maximum occupancy (emergency release)",
+          "max_occupancy_absence": "Emergency release: absence at least",
+          "humidity_window": "Humidity rise time window",
+          "shower_on_rate": "Shower on above rise of",
+          "shower_on_duration": "Shower on: rise for at least",
+          "shower_off_rate": "Shower off below rise of",
+          "shower_off_duration": "Shower off: flat for at least",
+          "shower_max_duration": "Maximum shower duration",
+          "toilet_lid_alert": "Toilet lid warning after"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "occupied": {
+        "name": "Occupied"
+      },
+      "shower": {
+        "name": "Shower"
+      },
+      "usage_detected": {
+        "name": "Usage detected"
+      },
+      "entry_window": {
+        "name": "Entry window"
+      },
+      "toilet_lid_open_too_long": {
+        "name": "Toilet lid open too long"
+      }
+    },
+    "button": {
+      "release": {
+        "name": "Release"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "sensor_error": "Sensor error",
+          "shower": "Showering",
+          "toilet": "Toilet",
+          "waiting_for_release": "Waiting for release",
+          "occupied": "Occupied",
+          "entry_detected": "Entry detected",
+          "free": "Free"
+        }
+      },
+      "humidity_rate": {
+        "name": "Humidity rise"
+      },
+      "usage_count": {
+        "name": "Usage count"
+      },
+      "usage_minutes": {
+        "name": "Usage minutes total"
+      },
+      "usage_last_duration": {
+        "name": "Usage last duration"
+      },
+      "usage_max_duration": {
+        "name": "Usage maximum duration"
+      },
+      "usage_average_duration": {
+        "name": "Usage average duration"
+      },
+      "shower_count": {
+        "name": "Shower count"
+      },
+      "shower_minutes": {
+        "name": "Shower minutes total"
+      },
+      "shower_last_duration": {
+        "name": "Shower last duration"
+      },
+      "shower_max_duration": {
+        "name": "Shower maximum duration"
+      },
+      "shower_average_duration": {
+        "name": "Shower average duration"
+      },
+      "toilet_count": {
+        "name": "Toilet count"
+      },
+      "toilet_minutes": {
+        "name": "Toilet minutes total"
+      },
+      "toilet_last_duration": {
+        "name": "Toilet last duration"
+      },
+      "toilet_max_duration": {
+        "name": "Toilet maximum duration"
+      },
+      "toilet_average_duration": {
+        "name": "Toilet average duration"
+      }
+    }
+  },
+  "selector": {
+    "kind": {
+      "options": {
+        "usage": "Usage",
+        "shower": "Shower",
+        "toilet": "Toilet"
+      }
+    }
+  },
+  "services": {
+    "release": {
+      "name": "Release bathroom",
+      "description": "Releases the bathroom immediately.",
+      "fields": {
+        "device_id": {
+          "name": "Bathroom",
+          "description": "The bathroom device."
+        }
+      }
+    },
+    "set_statistics": {
+      "name": "Set statistics",
+      "description": "Sets statistic values, e.g. to take over old helper values.",
+      "fields": {
+        "device_id": {
+          "name": "Bathroom",
+          "description": "The bathroom device."
+        },
+        "kind": {
+          "name": "Kind",
+          "description": "Usage, shower or toilet."
+        },
+        "count": {
+          "name": "Count",
+          "description": "Number of usages."
+        },
+        "total_minutes": {
+          "name": "Minutes total",
+          "description": "Sum of all minutes."
+        },
+        "last_minutes": {
+          "name": "Last duration",
+          "description": "Duration of the last usage in minutes."
+        },
+        "max_minutes": {
+          "name": "Maximum duration",
+          "description": "Longest usage in minutes."
+        }
+      }
+    },
+    "reset_statistics": {
+      "name": "Reset statistics",
+      "description": "Resets the statistics (one or all kinds).",
+      "fields": {
+        "device_id": {
+          "name": "Bathroom",
+          "description": "The bathroom device."
+        },
+        "kind": {
+          "name": "Kind",
+          "description": "Usage, shower or toilet."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "The selected device does not belong to a bathroom."
+    }
+  }
+}

@@ -1,0 +1,70 @@
+release:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: badezimmer_presence
+
+set_statistics:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: badezimmer_presence
+    kind:
+      required: true
+      selector:
+        select:
+          translation_key: kind
+          options:
+            - usage
+            - shower
+            - toilet
+    count:
+      selector:
+        number:
+          min: 0
+          max: 1000000
+          mode: box
+    total_minutes:
+      selector:
+        number:
+          min: 0
+          max: 10000000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
+    last_minutes:
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
+    max_minutes:
+      selector:
+        number:
+          min: 0
+          max: 10000
+          step: 0.1
+          mode: box
+          unit_of_measurement: min
+
+reset_statistics:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: badezimmer_presence
+    kind:
+      selector:
+        select:
+          translation_key: kind
+          options:
+            - usage
+            - shower
+            - toilet

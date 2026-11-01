@@ -1,0 +1,13 @@
+{
+  "domain": "badezimmer_presence",
+  "name": "Badezimmer Presence",
+  "codeowners": ["@patrickbrundiers-dev"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/patrickbrundiers-dev/Badezimmer-Presence",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/patrickbrundiers-dev/Badezimmer-Presence/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

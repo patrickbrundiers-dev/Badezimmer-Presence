@@ -1,0 +1,37 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "occupied": { "default": "mdi:toilet", "state": { "on": "mdi:account-lock" } },
+      "shower": { "default": "mdi:shower", "state": { "on": "mdi:shower-head" } },
+      "usage_detected": { "default": "mdi:check-circle-outline" },
+      "entry_window": { "default": "mdi:door-open" },
+      "toilet_lid_open_too_long": { "default": "mdi:toilet" }
+    },
+    "button": {
+      "release": { "default": "mdi:lock-open-variant" }
+    },
+    "sensor": {
+      "status": {
+        "default": "mdi:bathtub",
+        "state": {
+          "free": "mdi:check",
+          "entry_detected": "mdi:door-open",
+          "occupied": "mdi:account-lock",
+          "waiting_for_release": "mdi:timer-sand",
+          "toilet": "mdi:toilet",
+          "shower": "mdi:shower-head",
+          "sensor_error": "mdi:alert"
+        }
+      },
+      "humidity_rate": { "default": "mdi:water-percent" },
+      "usage_count": { "default": "mdi:counter" },
+      "shower_count": { "default": "mdi:counter" },
+      "toilet_count": { "default": "mdi:counter" }
+    }
+  },
+  "services": {
+    "release": { "service": "mdi:lock-open-variant" },
+    "set_statistics": { "service": "mdi:database-edit" },
+    "reset_statistics": { "service": "mdi:database-remove" }
+  }
+}

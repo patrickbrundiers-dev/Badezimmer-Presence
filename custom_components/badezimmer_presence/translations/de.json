@@ -1,0 +1,228 @@
+{
+  "title": "Badezimmer Presence",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Badezimmer einrichten",
+        "description": "Wähle die Sensoren deines Badezimmers. Nur der Präsenzsensor ist Pflicht, alle anderen machen die Erkennung genauer.",
+        "data": {
+          "name": "Name",
+          "presence_sensor": "Präsenzsensor (Raum)",
+          "entry_sensor": "Eintrittssensor (an der Tür)",
+          "door_sensor": "Türkontakt",
+          "toilet_lid_sensor": "Klodeckel-Kontakt",
+          "humidity_sensor": "Luftfeuchtigkeitssensor (Dusche)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR-Sensor, der Personen im Raum erkennt.",
+          "entry_sensor": "Bewegungsmelder am Eingang. Startet das Eintrittsfenster. Ohne ihn übernimmt der Türkontakt diese Rolle.",
+          "door_sensor": "Wird für die Schnellfreigabe beim Verlassen genutzt.",
+          "toilet_lid_sensor": "Offener Deckel bedeutet eindeutige Nutzung und hält das Bad belegt.",
+          "humidity_sensor": "Aus dem Anstieg der Luftfeuchtigkeit wird die Dusche erkannt."
+        }
+      },
+      "reconfigure": {
+        "title": "Sensoren ändern",
+        "data": {
+          "presence_sensor": "Präsenzsensor (Raum)",
+          "entry_sensor": "Eintrittssensor (an der Tür)",
+          "door_sensor": "Türkontakt",
+          "toilet_lid_sensor": "Klodeckel-Kontakt",
+          "humidity_sensor": "Luftfeuchtigkeitssensor (Dusche)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR-Sensor, der Personen im Raum erkennt.",
+          "entry_sensor": "Bewegungsmelder am Eingang. Startet das Eintrittsfenster. Ohne ihn übernimmt der Türkontakt diese Rolle.",
+          "door_sensor": "Wird für die Schnellfreigabe beim Verlassen genutzt.",
+          "toilet_lid_sensor": "Offener Deckel bedeutet eindeutige Nutzung und hält das Bad belegt.",
+          "humidity_sensor": "Aus dem Anstieg der Luftfeuchtigkeit wird die Dusche erkannt."
+        }
+      }
+    },
+    "error": {
+      "duplicate_sensor": "Jeder Sensor darf nur einmal ausgewählt werden."
+    },
+    "abort": {
+      "already_configured": "Dieser Präsenzsensor ist bereits einem Badezimmer zugeordnet.",
+      "reconfigure_successful": "Die Sensoren wurden aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zeiten und Schwellwerte",
+        "data": {
+          "entry_window": "Eintrittsfenster",
+          "release_delay": "Freigabe nach ohne Präsenz",
+          "exit_wait_for_absence": "Schnellfreigabe: Warten auf Abwesenheit",
+          "exit_reentry_guard": "Schnellfreigabe: Wiedereintrittsschutz",
+          "max_occupancy": "Maximale Belegungszeit (Notbremse)",
+          "max_occupancy_absence": "Notbremse: Abwesenheit mindestens",
+          "humidity_window": "Zeitfenster für Feuchte-Anstieg",
+          "shower_on_rate": "Dusche an ab Anstieg",
+          "shower_on_duration": "Dusche an: Anstieg mindestens",
+          "shower_off_rate": "Dusche aus unter Anstieg",
+          "shower_off_duration": "Dusche aus: flach mindestens",
+          "shower_max_duration": "Maximale Duschdauer",
+          "toilet_lid_alert": "Klodeckel-Warnung nach"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "occupied": {
+        "name": "Belegt"
+      },
+      "shower": {
+        "name": "Dusche"
+      },
+      "usage_detected": {
+        "name": "Nutzung erkannt"
+      },
+      "entry_window": {
+        "name": "Eintrittsfenster"
+      },
+      "toilet_lid_open_too_long": {
+        "name": "Klodeckel zu lange offen"
+      }
+    },
+    "button": {
+      "release": {
+        "name": "Freigeben"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "sensor_error": "Sensorfehler",
+          "shower": "Duschen",
+          "toilet": "WC",
+          "waiting_for_release": "Warte auf Freigabe",
+          "occupied": "Belegt",
+          "entry_detected": "Eintritt erkannt",
+          "free": "Frei"
+        }
+      },
+      "humidity_rate": {
+        "name": "Feuchte-Anstieg"
+      },
+      "usage_count": {
+        "name": "Nutzung Anzahl"
+      },
+      "usage_minutes": {
+        "name": "Nutzung Minuten gesamt"
+      },
+      "usage_last_duration": {
+        "name": "Nutzung letzte Dauer"
+      },
+      "usage_max_duration": {
+        "name": "Nutzung maximale Dauer"
+      },
+      "usage_average_duration": {
+        "name": "Nutzung Durchschnittsdauer"
+      },
+      "shower_count": {
+        "name": "Dusche Anzahl"
+      },
+      "shower_minutes": {
+        "name": "Dusche Minuten gesamt"
+      },
+      "shower_last_duration": {
+        "name": "Dusche letzte Dauer"
+      },
+      "shower_max_duration": {
+        "name": "Dusche maximale Dauer"
+      },
+      "shower_average_duration": {
+        "name": "Dusche Durchschnittsdauer"
+      },
+      "toilet_count": {
+        "name": "WC Anzahl"
+      },
+      "toilet_minutes": {
+        "name": "WC Minuten gesamt"
+      },
+      "toilet_last_duration": {
+        "name": "WC letzte Dauer"
+      },
+      "toilet_max_duration": {
+        "name": "WC maximale Dauer"
+      },
+      "toilet_average_duration": {
+        "name": "WC Durchschnittsdauer"
+      }
+    }
+  },
+  "selector": {
+    "kind": {
+      "options": {
+        "usage": "Nutzung",
+        "shower": "Dusche",
+        "toilet": "WC"
+      }
+    }
+  },
+  "services": {
+    "release": {
+      "name": "Bad freigeben",
+      "description": "Gibt das Badezimmer sofort frei.",
+      "fields": {
+        "device_id": {
+          "name": "Badezimmer",
+          "description": "Das Badezimmer-Gerät."
+        }
+      }
+    },
+    "set_statistics": {
+      "name": "Statistik setzen",
+      "description": "Setzt Statistikwerte, z. B. um alte Helfer-Werte zu übernehmen.",
+      "fields": {
+        "device_id": {
+          "name": "Badezimmer",
+          "description": "Das Badezimmer-Gerät."
+        },
+        "kind": {
+          "name": "Art",
+          "description": "Nutzung, Dusche oder WC."
+        },
+        "count": {
+          "name": "Anzahl",
+          "description": "Anzahl der Nutzungen."
+        },
+        "total_minutes": {
+          "name": "Minuten gesamt",
+          "description": "Summe aller Minuten."
+        },
+        "last_minutes": {
+          "name": "Letzte Dauer",
+          "description": "Dauer der letzten Nutzung in Minuten."
+        },
+        "max_minutes": {
+          "name": "Maximale Dauer",
+          "description": "Längste Nutzung in Minuten."
+        }
+      }
+    },
+    "reset_statistics": {
+      "name": "Statistik zurücksetzen",
+      "description": "Setzt die Statistik zurück (eine oder alle Arten).",
+      "fields": {
+        "device_id": {
+          "name": "Badezimmer",
+          "description": "Das Badezimmer-Gerät."
+        },
+        "kind": {
+          "name": "Art",
+          "description": "Nutzung, Dusche oder WC."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Das ausgewählte Gerät gehört zu keinem Badezimmer."
+    }
+  }
+}
