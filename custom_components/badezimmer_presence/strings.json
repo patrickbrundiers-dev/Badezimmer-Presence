@@ -50,23 +50,106 @@
   "options": {
     "step": {
       "init": {
+        "title": "Bathroom settings",
+        "description": "What do you want to change?",
+        "menu_options": {
+          "timings": "Timings and thresholds",
+          "sensors": "Sensors"
+        }
+      },
+      "timings": {
         "title": "Timings and thresholds",
+        "description": "Settings are grouped by feature. Groups for sensors you have not set up are hidden.",
+        "sections": {
+          "release": {
+            "name": "Entry and release",
+            "description": "When the bathroom counts as occupied and when it becomes free again.",
+            "data": {
+              "entry_window": "Entry window",
+              "release_delay": "Release after no presence for"
+            },
+            "data_description": {
+              "entry_window": "After an entry the presence sensor must detect someone within this time to mark the room occupied.",
+              "release_delay": "The room must be without presence this long before it is released."
+            }
+          },
+          "quick_exit": {
+            "name": "Quick release via door contact",
+            "description": "Releases earlier when someone opens the door and leaves.",
+            "data": {
+              "exit_wait_for_absence": "Quick release: wait for absence",
+              "exit_reentry_guard": "Quick release: re-entry guard"
+            },
+            "data_description": {
+              "exit_wait_for_absence": "After the door opens, wait this long for absence, then release immediately.",
+              "exit_reentry_guard": "If presence returns within this time after leaving, the room stays occupied."
+            }
+          },
+          "emergency": {
+            "name": "Emergency release",
+            "description": "Releases when the room has been occupied unusually long and nobody is there anymore.",
+            "data": {
+              "max_occupancy": "Maximum occupancy (emergency release)",
+              "max_occupancy_absence": "Emergency release: absence at least"
+            },
+            "data_description": {
+              "max_occupancy": "After this time the emergency release kicks in.",
+              "max_occupancy_absence": "The emergency release only releases after no presence for this long."
+            }
+          },
+          "shower": {
+            "name": "Shower detection",
+            "description": "Detects showering from rising humidity.",
+            "data": {
+              "humidity_window": "Humidity rise time window",
+              "shower_on_rate": "Shower on above rise of",
+              "shower_on_duration": "Shower on: rise for at least",
+              "shower_off_rate": "Shower off below rise of",
+              "shower_off_duration": "Shower off: flat for at least",
+              "shower_max_duration": "Maximum shower duration"
+            },
+            "data_description": {
+              "humidity_window": "Time window used to compute the humidity rise.",
+              "shower_on_rate": "A faster rise counts as showering. Lower value = more sensitive.",
+              "shower_on_duration": "The rise must last this long before a shower is detected.",
+              "shower_off_rate": "When the rise drops below this value, the shower starts to end.",
+              "shower_off_duration": "Humidity must stay flat this long for the shower to end.",
+              "shower_max_duration": "The shower ends at the latest after this time."
+            }
+          },
+          "toilet": {
+            "name": "Toilet lid",
+            "description": "Warning when the lid stays open too long.",
+            "data": {
+              "toilet_lid_alert": "Toilet lid warning after"
+            },
+            "data_description": {
+              "toilet_lid_alert": "After the lid is open this long the warning event fires."
+            }
+          }
+        }
+      },
+      "sensors": {
+        "title": "Change sensors",
+        "description": "Pick the sensors. Only the presence sensor is required.",
         "data": {
-          "entry_window": "Entry window",
-          "release_delay": "Release after no presence for",
-          "exit_wait_for_absence": "Quick release: wait for absence",
-          "exit_reentry_guard": "Quick release: re-entry guard",
-          "max_occupancy": "Maximum occupancy (emergency release)",
-          "max_occupancy_absence": "Emergency release: absence at least",
-          "humidity_window": "Humidity rise time window",
-          "shower_on_rate": "Shower on above rise of",
-          "shower_on_duration": "Shower on: rise for at least",
-          "shower_off_rate": "Shower off below rise of",
-          "shower_off_duration": "Shower off: flat for at least",
-          "shower_max_duration": "Maximum shower duration",
-          "toilet_lid_alert": "Toilet lid warning after"
+          "presence_sensor": "Presence sensor (room)",
+          "entry_sensor": "Entry sensor (at the door)",
+          "door_sensor": "Door contact",
+          "toilet_lid_sensor": "Toilet lid contact",
+          "humidity_sensor": "Humidity sensor (shower)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR sensor detecting people in the room.",
+          "entry_sensor": "Motion sensor at the entrance. Starts the entry window. Without it the door contact takes over.",
+          "door_sensor": "Used for quick release when leaving.",
+          "toilet_lid_sensor": "An open lid means definite use and keeps the room occupied.",
+          "humidity_sensor": "The shower is detected from rising humidity."
         }
       }
+    },
+    "error": {
+      "duplicate_sensor": "Each sensor can only be selected once."
     }
   },
   "entity": {

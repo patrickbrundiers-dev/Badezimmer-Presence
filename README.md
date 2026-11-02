@@ -30,8 +30,17 @@ Pro Badezimmer wird ein Eintrag angelegt, mehrere Bäder sind möglich.
 | Klodeckel-Kontakt | nein | Offener Deckel bedeutet eindeutige Nutzung. |
 | Luftfeuchtigkeit | nein | Duscherkennung über den Feuchte-Anstieg (%/min). |
 
-Die Sensoren lassen sich später über **⋮ → Neu konfigurieren** ändern, alle
-Zeiten und Schwellwerte über **Konfigurieren**.
+Alles lässt sich später unter **Einstellungen → Geräte & Dienste → Badezimmer
+Presence → Konfigurieren** ändern. Dort wählst du zwischen
+
+* **Zeiten und Schwellwerte**, gruppiert nach Eintritt und Freigabe,
+  Schnellfreigabe, Notbremse, Duscherkennung und Klodeckel. Jedes Feld hat
+  einen Hilfetext. Gruppen für Sensoren, die nicht eingerichtet sind, werden
+  ausgeblendet.
+* **Sensoren**, um Sensoren hinzuzufügen, zu tauschen oder zu entfernen.
+
+Die Integration lädt nach dem Speichern automatisch neu, die Statistik bleibt
+erhalten. **⋮ → Neu konfigurieren** funktioniert für die Sensoren weiterhin.
 
 ## So funktioniert die Erkennung
 
