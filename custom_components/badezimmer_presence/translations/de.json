@@ -50,23 +50,106 @@
   "options": {
     "step": {
       "init": {
+        "title": "Badezimmer einstellen",
+        "description": "Was möchtest du ändern?",
+        "menu_options": {
+          "timings": "Zeiten und Schwellwerte",
+          "sensors": "Sensoren"
+        }
+      },
+      "timings": {
         "title": "Zeiten und Schwellwerte",
+        "description": "Die Einstellungen sind nach Funktion gruppiert. Gruppen für Sensoren, die du nicht eingerichtet hast, werden ausgeblendet.",
+        "sections": {
+          "release": {
+            "name": "Eintritt und Freigabe",
+            "description": "Wann das Bad als belegt gilt und wann es wieder frei wird.",
+            "data": {
+              "entry_window": "Eintrittsfenster",
+              "release_delay": "Freigabe nach ohne Präsenz"
+            },
+            "data_description": {
+              "entry_window": "So lange nach einem Eintritt muss der Präsenzsensor jemanden erkennen, damit das Bad belegt wird.",
+              "release_delay": "So lange muss der Raum ohne Präsenz sein, bevor das Bad freigegeben wird."
+            }
+          },
+          "quick_exit": {
+            "name": "Schnellfreigabe über Türkontakt",
+            "description": "Gibt das Bad früher frei, wenn jemand die Tür öffnet und den Raum verlässt.",
+            "data": {
+              "exit_wait_for_absence": "Schnellfreigabe: Warten auf Abwesenheit",
+              "exit_reentry_guard": "Schnellfreigabe: Wiedereintrittsschutz"
+            },
+            "data_description": {
+              "exit_wait_for_absence": "Nach dem Öffnen der Tür wird so lange auf fehlende Präsenz gewartet, dann sofort freigegeben.",
+              "exit_reentry_guard": "Wird in dieser Zeit nach dem Verlassen wieder Präsenz erkannt, bleibt das Bad belegt."
+            }
+          },
+          "emergency": {
+            "name": "Notbremse",
+            "description": "Gibt das Bad frei, wenn es ungewöhnlich lange belegt ist und niemand mehr da ist.",
+            "data": {
+              "max_occupancy": "Maximale Belegungszeit (Notbremse)",
+              "max_occupancy_absence": "Notbremse: Abwesenheit mindestens"
+            },
+            "data_description": {
+              "max_occupancy": "Nach dieser Zeit greift die Notbremse.",
+              "max_occupancy_absence": "Die Notbremse gibt nur frei, wenn so lange keine Präsenz erkannt wurde."
+            }
+          },
+          "shower": {
+            "name": "Duscherkennung",
+            "description": "Erkennt die Dusche am Anstieg der Luftfeuchtigkeit.",
+            "data": {
+              "humidity_window": "Zeitfenster für Feuchte-Anstieg",
+              "shower_on_rate": "Dusche an ab Anstieg",
+              "shower_on_duration": "Dusche an: Anstieg mindestens",
+              "shower_off_rate": "Dusche aus unter Anstieg",
+              "shower_off_duration": "Dusche aus: flach mindestens",
+              "shower_max_duration": "Maximale Duschdauer"
+            },
+            "data_description": {
+              "humidity_window": "Über diesen Zeitraum wird der Anstieg der Luftfeuchtigkeit berechnet.",
+              "shower_on_rate": "Steigt die Feuchte schneller, gilt das als Duschen. Kleiner Wert = empfindlicher.",
+              "shower_on_duration": "So lange muss der Anstieg anhalten, bevor die Dusche erkannt wird.",
+              "shower_off_rate": "Fällt der Anstieg unter diesen Wert, beginnt das Ende der Dusche.",
+              "shower_off_duration": "So lange muss die Feuchte flach bleiben, damit die Dusche als beendet gilt.",
+              "shower_max_duration": "Danach wird die Dusche spätestens beendet."
+            }
+          },
+          "toilet": {
+            "name": "Klodeckel",
+            "description": "Warnung, wenn der Deckel zu lange offen ist.",
+            "data": {
+              "toilet_lid_alert": "Klodeckel-Warnung nach"
+            },
+            "data_description": {
+              "toilet_lid_alert": "Nach dieser Zeit mit offenem Deckel kommt das Ereignis für die Warnung."
+            }
+          }
+        }
+      },
+      "sensors": {
+        "title": "Sensoren ändern",
+        "description": "Hier wählst du die Sensoren. Nur der Präsenzsensor ist Pflicht.",
         "data": {
-          "entry_window": "Eintrittsfenster",
-          "release_delay": "Freigabe nach ohne Präsenz",
-          "exit_wait_for_absence": "Schnellfreigabe: Warten auf Abwesenheit",
-          "exit_reentry_guard": "Schnellfreigabe: Wiedereintrittsschutz",
-          "max_occupancy": "Maximale Belegungszeit (Notbremse)",
-          "max_occupancy_absence": "Notbremse: Abwesenheit mindestens",
-          "humidity_window": "Zeitfenster für Feuchte-Anstieg",
-          "shower_on_rate": "Dusche an ab Anstieg",
-          "shower_on_duration": "Dusche an: Anstieg mindestens",
-          "shower_off_rate": "Dusche aus unter Anstieg",
-          "shower_off_duration": "Dusche aus: flach mindestens",
-          "shower_max_duration": "Maximale Duschdauer",
-          "toilet_lid_alert": "Klodeckel-Warnung nach"
+          "presence_sensor": "Präsenzsensor (Raum)",
+          "entry_sensor": "Eintrittssensor (an der Tür)",
+          "door_sensor": "Türkontakt",
+          "toilet_lid_sensor": "Klodeckel-Kontakt",
+          "humidity_sensor": "Luftfeuchtigkeitssensor (Dusche)"
+        },
+        "data_description": {
+          "presence_sensor": "mmWave/PIR-Sensor, der Personen im Raum erkennt.",
+          "entry_sensor": "Bewegungsmelder am Eingang. Startet das Eintrittsfenster. Ohne ihn übernimmt der Türkontakt diese Rolle.",
+          "door_sensor": "Wird für die Schnellfreigabe beim Verlassen genutzt.",
+          "toilet_lid_sensor": "Offener Deckel bedeutet eindeutige Nutzung und hält das Bad belegt.",
+          "humidity_sensor": "Aus dem Anstieg der Luftfeuchtigkeit wird die Dusche erkannt."
         }
       }
+    },
+    "error": {
+      "duplicate_sensor": "Jeder Sensor darf nur einmal ausgewählt werden."
     }
   },
   "entity": {

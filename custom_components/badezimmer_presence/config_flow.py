@@ -9,6 +9,7 @@ from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN, SensorDevic
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
 import voluptuous as vol
 
@@ -77,24 +78,65 @@ def _sensor_schema(defaults: dict[str, Any], with_name: bool) -> vol.Schema:
     return vol.Schema(schema)
 
 
-def _options_schema(options: dict[str, Any]) -> vol.Schema:
+_FIELDS: dict[str, selector.NumberSelector] = {
+    CONF_ENTRY_WINDOW: _number(10, 600, 5, "s"),
+    CONF_RELEASE_DELAY: _number(10, 3600, 10, "s"),
+    CONF_EXIT_WAIT: _number(5, 600, 5, "s"),
+    CONF_EXIT_GUARD: _number(0, 300, 1, "s"),
+    CONF_MAX_OCCUPANCY: _number(10, 1440, 5, "min"),
+    CONF_MAX_OCCUPANCY_ABSENCE: _number(1, 120, 1, "min"),
+    CONF_HUMIDITY_WINDOW: _number(1, 30, 1, "min"),
+    CONF_SHOWER_ON_RATE: _number(0.05, 10, 0.05, "%/min"),
+    CONF_SHOWER_ON_DURATION: _number(0, 600, 10, "s"),
+    CONF_SHOWER_OFF_RATE: _number(-5, 5, 0.05, "%/min"),
+    CONF_SHOWER_OFF_DURATION: _number(1, 60, 1, "min"),
+    CONF_SHOWER_MAX_DURATION: _number(10, 300, 5, "min"),
+    CONF_TOILET_LID_ALERT: _number(1, 600, 1, "min"),
+}
+
+# Section name -> (fields, sensor the section needs or None).
+SECTIONS: dict[str, tuple[tuple[str, ...], str | None]] = {
+    "release": ((CONF_ENTRY_WINDOW, CONF_RELEASE_DELAY), None),
+    "quick_exit": ((CONF_EXIT_WAIT, CONF_EXIT_GUARD), CONF_DOOR_SENSOR),
+    "emergency": ((CONF_MAX_OCCUPANCY, CONF_MAX_OCCUPANCY_ABSENCE), None),
+    "shower": (
+        (
+            CONF_HUMIDITY_WINDOW,
+            CONF_SHOWER_ON_RATE,
+            CONF_SHOWER_ON_DURATION,
+            CONF_SHOWER_OFF_RATE,
+            CONF_SHOWER_OFF_DURATION,
+            CONF_SHOWER_MAX_DURATION,
+        ),
+        CONF_HUMIDITY_SENSOR,
+    ),
+    "toilet": ((CONF_TOILET_LID_ALERT,), CONF_TOILET_LID_SENSOR),
+}
+
+
+def _visible_sections(data: dict[str, Any]) -> list[str]:
+    """Only show the settings of features whose sensor is configured."""
+    return [name for name, (_, needs) in SECTIONS.items() if needs is None or data.get(needs)]
+
+
+def _options_schema(options: dict[str, Any], data: dict[str, Any]) -> vol.Schema:
     opts = {**DEFAULT_OPTIONS, **options}
-    fields: dict[str, selector.NumberSelector] = {
-        CONF_ENTRY_WINDOW: _number(10, 600, 5, "s"),
-        CONF_RELEASE_DELAY: _number(10, 3600, 10, "s"),
-        CONF_EXIT_WAIT: _number(5, 600, 5, "s"),
-        CONF_EXIT_GUARD: _number(0, 300, 1, "s"),
-        CONF_MAX_OCCUPANCY: _number(10, 1440, 5, "min"),
-        CONF_MAX_OCCUPANCY_ABSENCE: _number(1, 120, 1, "min"),
-        CONF_HUMIDITY_WINDOW: _number(1, 30, 1, "min"),
-        CONF_SHOWER_ON_RATE: _number(0.05, 10, 0.05, "%/min"),
-        CONF_SHOWER_ON_DURATION: _number(0, 600, 10, "s"),
-        CONF_SHOWER_OFF_RATE: _number(-5, 5, 0.05, "%/min"),
-        CONF_SHOWER_OFF_DURATION: _number(1, 60, 1, "min"),
-        CONF_SHOWER_MAX_DURATION: _number(10, 300, 5, "min"),
-        CONF_TOILET_LID_ALERT: _number(1, 600, 1, "min"),
-    }
-    return vol.Schema({vol.Required(key, default=opts[key]): sel for key, sel in fields.items()})
+    schema: dict[Any, Any] = {}
+    for index, name in enumerate(_visible_sections(data)):
+        keys = SECTIONS[name][0]
+        schema[vol.Required(name)] = section(
+            vol.Schema({vol.Required(key, default=opts[key]): _FIELDS[key] for key in keys}),
+            {"collapsed": index > 0},
+        )
+    return vol.Schema(schema)
+
+
+def _flatten(user_input: dict[str, Any]) -> dict[str, Any]:
+    flat: dict[str, Any] = {}
+    for value in user_input.values():
+        if isinstance(value, dict):
+            flat.update(value)
+    return flat
 
 
 def _validate(user_input: dict[str, Any]) -> dict[str, str]:
@@ -155,12 +197,38 @@ class BadezimmerPresenceConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class BadezimmerPresenceOptionsFlow(OptionsFlow):
-    """Timings and thresholds."""
+    """Sensors, timings and thresholds."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Manage the options."""
+        """Let the user pick what to change."""
+        return self.async_show_menu(step_id="init", menu_options=["timings", "sensors"])
+
+    async def async_step_timings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change timings and thresholds, grouped by feature."""
+        options = {**DEFAULT_OPTIONS, **self.config_entry.options}
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(data={**options, **_flatten(user_input)})
         return self.async_show_form(
-            step_id="init", data_schema=_options_schema(dict(self.config_entry.options))
+            step_id="timings",
+            data_schema=_options_schema(options, dict(self.config_entry.data)),
+        )
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change the sensors without leaving the options dialog."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            errors = _validate(user_input)
+            if not errors:
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=_clean(user_input)
+                )
+                return self.async_create_entry(data=dict(self.config_entry.options))
+        return self.async_show_form(
+            step_id="sensors",
+            data_schema=_sensor_schema(user_input or dict(self.config_entry.data), with_name=False),
+            errors=errors,
         )

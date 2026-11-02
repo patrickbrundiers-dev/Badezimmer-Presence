@@ -224,14 +224,85 @@ async def test_state_survives_reload(hass: HomeAssistant) -> None:
 
 
 async def test_options_flow(hass: HomeAssistant) -> None:
-    """Options can be changed and reload the entry."""
+    """Timings are grouped in sections and reload the entry."""
     entry = await _setup(hass)
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
+    assert result["type"] is FlowResultType.MENU
+    assert result["menu_options"] == ["timings", "sensors"]
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {**DEFAULT_OPTIONS, CONF_RELEASE_DELAY: 120}
+        result["flow_id"], {"next_step_id": "timings"}
+    )
+    assert result["type"] is FlowResultType.FORM
+    sections = [str(key) for key in result["data_schema"].schema]
+    assert sections == ["release", "quick_exit", "emergency", "shower", "toilet"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "release": {"entry_window": 60, CONF_RELEASE_DELAY: 120},
+            "quick_exit": {"exit_wait_for_absence": 60, "exit_reentry_guard": 20},
+            "emergency": {"max_occupancy": 120, "max_occupancy_absence": 5},
+            "shower": {
+                "humidity_window": 3,
+                "shower_on_rate": 0.5,
+                "shower_on_duration": 60,
+                "shower_off_rate": 0.15,
+                "shower_off_duration": 5,
+                "shower_max_duration": 60,
+            },
+            "toilet": {"toilet_lid_alert": 40},
+        },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert entry.options[CONF_RELEASE_DELAY] == 120
+    assert entry.options["shower_on_rate"] == 0.5
+    assert set(entry.options) == set(DEFAULT_OPTIONS)
     assert entry.runtime_data.engine.config.release_delay == timedelta(seconds=120)
+
+
+async def test_options_flow_hides_unused_sections(hass: HomeAssistant) -> None:
+    """Sections of features without a sensor are hidden and keep their values."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_PRESENCE_SENSOR: "binary_sensor.presence"},
+        options=dict(DEFAULT_OPTIONS),
+    )
+    entry.add_to_hass(hass)
+    hass.states.async_set("binary_sensor.presence", "off")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "timings"}
+    )
+    assert [str(key) for key in result["data_schema"].schema] == ["release", "emergency"]
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "release": {"entry_window": 30, CONF_RELEASE_DELAY: 180},
+            "emergency": {"max_occupancy": 90, "max_occupancy_absence": 5},
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options["max_occupancy"] == 90
+    assert entry.options["shower_on_rate"] == DEFAULT_OPTIONS["shower_on_rate"]
+
+
+async def test_options_flow_sensors(hass: HomeAssistant) -> None:
+    """Sensors can be changed from the options dialog."""
+    entry = await _setup(hass)
+    hass.states.async_set("binary_sensor.new_door", "off")
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "sensors"}
+    )
+    assert result["type"] is FlowResultType.FORM
+    data = {**entry.data, CONF_DOOR_SENSOR: entry.data[CONF_ENTRY_SENSOR]}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], data)
+    assert result["errors"] == {"base": "duplicate_sensor"}
+    data = {**entry.data, CONF_DOOR_SENSOR: "binary_sensor.new_door"}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], data)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.data[CONF_DOOR_SENSOR] == "binary_sensor.new_door"
+    assert entry.options == DEFAULT_OPTIONS
